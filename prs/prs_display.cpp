@@ -1,4 +1,4 @@
-// Copyright (c) 2005, Rodrigo Braz Monteiro
+// Copyright (c) 2006, Rodrigo Braz Monteiro
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,36 +34,70 @@
 //
 
 
-#pragma once
-
-
 ///////////
 // Headers
-#include "prs_entry.h"
+#include "prs_display.h"
 
 
 ///////////////
-// Image types
-enum PRSImageType {
-	WXIMAGE = -1,
-	NULL_IMG,
-	PNG_IMG,
-	BMP_RGB24_IMG
-};
+// Constructor
+PRSDisplay::PRSDisplay() {
+	start = -1;
+	end = -1;
+	id = -1;
+	layer = 0;
+	x = 0;
+	y = 0;
+	alpha = 255;
+	blend = BLEND_NORMAL;
+}
 
 
-///////////////
-// Image class
-class PRSImage : public PRSEntry {
-public:
-	PRSImageType imageType;
-	unsigned int id;
-	unsigned int dataLen;
-	void *data;
+//////////////
+// Destructor
+PRSDisplay::~PRSDisplay() {
+}
 
-	PRSImage();
-	~PRSImage();
 
-	PRSEntryType GetType() { return IMAGE_ENTRY; }
-	void WriteData(FILE *fp);
-};
+//////////////
+// Write data
+void PRSDisplay::WriteData(FILE *fp) {
+	// Write block identifier
+	fwrite("DSP",1,4,fp);
+
+	// Write block length
+	unsigned __int32 utemp = 4 + 4 + 4 + 2 + 2 + 2 + 1 + 1;
+	fwrite(&utemp,4,1,fp);
+
+	// Write start time
+	utemp = start;
+	fwrite(&utemp,4,1,fp);
+
+	// Write end time
+	utemp = end;
+	fwrite(&utemp,4,1,fp);
+
+	// Write image identifier
+	utemp = id;
+	fwrite(&utemp,4,1,fp);
+
+	// Write layer
+	__int16 shorttemp = layer;
+	fwrite(&shorttemp,2,1,fp);
+
+	// Write x
+	shorttemp = x;
+	fwrite(&shorttemp,2,1,fp);
+
+	// Write y
+	shorttemp = y;
+	fwrite(&shorttemp,2,1,fp);
+
+	// Write alpha multiplier
+	unsigned __int8 chartemp = alpha;
+	fwrite(&chartemp,1,1,fp);
+
+	// Write blend mode
+	chartemp = blend;
+	fwrite(&chartemp,1,1,fp);
+}

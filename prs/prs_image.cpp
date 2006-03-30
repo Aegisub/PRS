@@ -1,4 +1,4 @@
-// Copyright (c) 2005, Rodrigo Braz Monteiro
+// Copyright (c) 2006, Rodrigo Braz Monteiro
 // All rights reserved.
 //
 // Redistribution and use in source and binary forms, with or without
@@ -34,36 +34,54 @@
 //
 
 
-#pragma once
-
-
 ///////////
 // Headers
-#include "prs_entry.h"
+#include "prs_image.h"
 
 
 ///////////////
-// Image types
-enum PRSImageType {
-	WXIMAGE = -1,
-	NULL_IMG,
-	PNG_IMG,
-	BMP_RGB24_IMG
-};
+// Constructor
+PRSImage::PRSImage() {
+	id = -1;
+	imageType = NULL_IMG;
+	dataLen = 0;
+	data = 0;
+}
 
 
-///////////////
-// Image class
-class PRSImage : public PRSEntry {
-public:
-	PRSImageType imageType;
-	unsigned int id;
-	unsigned int dataLen;
-	void *data;
+//////////////
+// Destructor
+PRSImage::~PRSImage() {
+	if (data) {
+		delete [] data;
+		data = 0;
+		dataLen = 0;
+	}
+}
 
-	PRSImage();
-	~PRSImage();
 
-	PRSEntryType GetType() { return IMAGE_ENTRY; }
-	void WriteData(FILE *fp);
-};
+//////////////
+// Write data
+void PRSImage::WriteData(FILE *fp) {
+	// Write block identifier
+	fwrite("IMG",1,4,fp);
+
+	// Write block length
+	unsigned __int32 utemp = 4 + 4 + 4 + dataLen;
+	fwrite(&utemp,4,1,fp);
+
+	// Write image identifier
+	utemp = id;
+	fwrite(&utemp,4,1,fp);
+
+	// Write image format
+	utemp = imageType;
+	fwrite(&utemp,4,1,fp);
+
+	// Write data length
+	utemp = dataLen;
+	fwrite(&utemp,4,1,fp);
+
+	// Write data
+	fwrite(data,1,dataLen,fp);
+}
